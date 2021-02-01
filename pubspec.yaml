@@ -38,6 +38,8 @@ dev_dependencies:
   auto_size_text: ^2.1.0
   #for date
   intl: ^0.16.1
+  #for toast messages
+  fluttertoast: ^7.1.6
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
