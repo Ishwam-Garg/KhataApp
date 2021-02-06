@@ -46,13 +46,6 @@ class _MonthDataState extends State<MonthData> {
 
   @override
   Widget build(BuildContext context) {
-    //totalExpense = int.parse(widget.TotalExpense);
-    FeesAmount = widget.FeesAmount;
-    EntertainmentAmount = widget.EntertainmentAmount;
-    ShoppingAmount = widget.ShoppingAmount;
-    MaintenanceAmount = widget.MaintenanceAmount;
-    RationAmount = widget.RationAmount;
-    EmiAmount = widget.EmiAmount;
     var now = DateTime.now();
     var dateformat = DateFormat('dd-MM-yyyy');
     Date = dateformat.format(now).toString();
@@ -89,7 +82,7 @@ class _MonthDataState extends State<MonthData> {
         body: SingleChildScrollView(
           physics: ScrollPhysics(),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 20,),
@@ -99,7 +92,7 @@ class _MonthDataState extends State<MonthData> {
                   child: AutoSizeText(
                     'Total Expense',
                     textAlign: TextAlign.center,maxLines: 1,
-                    style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,fontSize: 24),),
+                    style: TextStyle(color: Colors.black.withOpacity(0.8),fontWeight: FontWeight.bold,fontSize: 18),),
               ),
               SizedBox(height: 10,),
               StreamBuilder(
@@ -113,13 +106,19 @@ class _MonthDataState extends State<MonthData> {
                     {
                       DocumentSnapshot data = snapshot.data;
                       totalExpense = data.data()["TotalExpense"];
+                      FeesAmount = data.data()["Fees"];
+                      EntertainmentAmount = data.data()["Entertainment"];
+                      ShoppingAmount = data.data()["Shopping"];
+                      MaintenanceAmount = data.data()["Maintenance"];
+                      RationAmount = data.data()["Ration"];
+                      EmiAmount = data.data()["EMI"];
                       return Container(
                         alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width,
                         child: Column(
                           children: [
                             AutoSizeText(
-                              '₹'+data.data()["TotalExpense"].toString(),
+                              '₹ '+data.data()["TotalExpense"].toString(),
                               textAlign: TextAlign.center,maxLines: 1,
                               style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,fontSize: 30),
                             ),
@@ -132,7 +131,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'EMI: ₹'+data.data()["EMI"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Container(
@@ -140,7 +139,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'Fees: ₹'+data.data()["Fees"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -153,7 +152,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'Entertainment: ₹'+data.data()["Entertainment"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Container(
@@ -161,7 +160,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'Ration: ₹'+data.data()["Ration"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -174,7 +173,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'Maintenance: ₹'+data.data()["Maintenance"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Container(
@@ -182,7 +181,7 @@ class _MonthDataState extends State<MonthData> {
                                   child: AutoSizeText(
                                     'Shopping: ₹'+data.data()["Shopping"].toString(),
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.red,fontSize: 18,fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -250,14 +249,14 @@ class _MonthDataState extends State<MonthData> {
                       width: MediaQuery.of(context).size.width*0.6,
                       child: DropdownButton(
                         hint: CurrentExpense == null
-                            ? Text('Select Expense',style: TextStyle(color: Colors.deepPurple),)
+                            ? Text('Select Expense',style: TextStyle(color: Colors.deepPurple,fontSize: 14),)
                             : Text(
                           CurrentExpense,
-                          style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 18),
+                          style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 14),
                         ),
                         isExpanded: true,
                         iconSize: 30.0,
-                        style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 18),
+                        style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 14),
                         items: TypesOfExpenses.map(
                               (val) {
                             return DropdownMenuItem<String>(
@@ -275,11 +274,12 @@ class _MonthDataState extends State<MonthData> {
                         },
                       ),
                     ),
+                    //Select Amount field
                     Container(
                       width: MediaQuery.of(context).size.width*0.6,
                       child: TextFormField(
                         controller: _textcontrollerAmount,
-                        autovalidate: true,
+                        autovalidate: false,
                         keyboardType: TextInputType.number,
                         onSaved: (value){
                           setState(() {
@@ -321,11 +321,8 @@ class _MonthDataState extends State<MonthData> {
                               width: 1,
                             ),
                           ),
-                          icon: Container(
-                            child: Text('₹',style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,fontSize: 24),),
-                          ),
-                          labelText: 'Amount',
-                          labelStyle: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold),
+                          labelText: '₹ Amount',
+                          labelStyle: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 16),
                         ),
                       ),
                     ),
@@ -333,8 +330,8 @@ class _MonthDataState extends State<MonthData> {
                       width: MediaQuery.of(context).size.width*0.6,
                       child: TextFormField(
                         controller: _textcontrollerDescription,
-                        autovalidate: true,
-                        keyboardType: TextInputType.multiline,
+                        autovalidate: false,
+                        keyboardType: TextInputType.text,
                         maxLength: null,
                         onSaved: (value){
                           setState(() {
@@ -377,7 +374,7 @@ class _MonthDataState extends State<MonthData> {
                             ),
                           ),
                           labelText: 'Description',
-                          labelStyle: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold),
+                          labelStyle: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 16),
                         ),
                       ),
                     ),
@@ -396,7 +393,7 @@ class _MonthDataState extends State<MonthData> {
                           textColor: Colors.white,
                           toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
                     }
-                    else{
+                    else {
                       {
                         setState(() {
                           totalExpense = totalExpense + Amount;
@@ -497,7 +494,15 @@ class _MonthDataState extends State<MonthData> {
                         );
                         _textcontrollerAmount.clear();
                         _textcontrollerDescription.clear();
-                        //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                        print("$CurrentExpense");
+                        print("$Amount");
+                        print("$Description");
+                        setState(() {
+                          CurrentExpense = null;
+                          Amount = null;
+                          Description = null;
+                        });
+                        //Navigator.pop(context);
                       }
                     }
                   }
@@ -511,7 +516,7 @@ class _MonthDataState extends State<MonthData> {
                   }
                 },
                 color: Colors.deepPurpleAccent,
-                child: Text('Add',style: TextStyle(color: Colors.white),),
+                child: Text('ADD',style: TextStyle(color: Colors.white),),
               ),
             ],),
         );
@@ -524,10 +529,14 @@ class _MonthDataState extends State<MonthData> {
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(horizontal: 2),
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
+            color: Colors.deepPurple,
+            width: 0.5,
+          ),
+          top: BorderSide(
             color: Colors.deepPurple,
             width: 0.5,
           ),
@@ -548,17 +557,19 @@ class _MonthDataState extends State<MonthData> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(type,textAlign: TextAlign.left,style: TextStyle(color: Color(0xff006400),fontSize: 20,fontWeight: FontWeight.bold),),
+                  Text(type,textAlign: TextAlign.left,style: TextStyle(color: Color(0xff006400),fontSize: 18,fontWeight: FontWeight.bold),),
                   Container(
                       width: MediaQuery.of(context).size.width*0.50,
                       child: Text(
-                        "Description:\n" + description,
+                        description,
                         textAlign: TextAlign.left,
                         overflow: TextOverflow.clip,
-                        style: TextStyle(color: Color(0xffC29200),fontSize: 20,fontWeight: FontWeight.bold),)),
+                        style: TextStyle(color: Colors.black,fontSize: 16,fontWeight: FontWeight.bold),
+                      ),
+                  ),
                 ],
               ),
-              Text('₹ '+amount,textAlign: TextAlign.left,style: TextStyle(color: Colors.red,fontSize: 34,fontWeight: FontWeight.bold),),
+              Text('₹ '+amount,textAlign: TextAlign.left,style: TextStyle(color: Colors.red,fontSize: 24,fontWeight: FontWeight.bold),),
             ],
           ),
         ],
