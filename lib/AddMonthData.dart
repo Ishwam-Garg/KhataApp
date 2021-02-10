@@ -6,13 +6,17 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khata_app/HomeScreen.dart';
 import 'package:intl/intl.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MonthData extends StatefulWidget {
 
+  final User;
   final String TotalExpense,MonthName,Year,month;
   final int FeesAmount,MaintenanceAmount,RationAmount,EmiAmount,ShoppingAmount,EntertainmentAmount;
   const MonthData({Key key, this.TotalExpense, this.MonthName,
-    this.Year,this.month,this.EmiAmount,this.EntertainmentAmount,this.FeesAmount,this.MaintenanceAmount,this.RationAmount,this.ShoppingAmount}) : super(key: key);
+    this.Year,this.month,this.EmiAmount,this.EntertainmentAmount,this.FeesAmount,
+    this.MaintenanceAmount,this.RationAmount,this.ShoppingAmount,this.User}) : super(key: key);
 
   @override
   _MonthDataState createState() => _MonthDataState();
@@ -22,17 +26,17 @@ class MonthData extends StatefulWidget {
 class _MonthDataState extends State<MonthData> {
 
   String Date;
-  
+  User user;
   final _key = GlobalKey<FormState>();
   TextEditingController _textcontrollerAmount = TextEditingController();
   TextEditingController _textcontrollerDescription = TextEditingController();
   int totalExpense;
 
-  int FeesAmount,MaintenanceAmount,RationAmount,EmiAmount,ShoppingAmount,EntertainmentAmount;
+  int FeesAmount,MaintenanceAmount,RationAmount,EmiAmount,ShoppingAmount,EntertainmentAmount,MedicalExpenseAmount;
 
-  List<String> TypesOfExpenses =['Fees','Maintenance','Ration','EMI','Shopping','Entertainment'];
+  List<String> TypesOfExpenses =['Fees','Maintenance','Ration','EMI','Shopping','Entertainment','Medical'];
 
-  String CurrentMonth,OngoingMonth;
+  String OngoingMonth,OnGoingYear;
 
   String CurrentExpense,Description;
   int Amount;
@@ -50,6 +54,13 @@ class _MonthDataState extends State<MonthData> {
     var dateformat = DateFormat('dd-MM-yyyy');
     Date = dateformat.format(now).toString();
     OngoingMonth = DateFormat('MM').format(now).toString();
+    OnGoingYear = DateFormat('yyyy').format(now).toString();
+    user = widget.User;
+    print(OngoingMonth);
+    print(OnGoingYear);
+    print(widget.Year);
+    print(widget.month);
+
     return WillPopScope(
       onWillPop: (){},
       child: Scaffold(
@@ -96,7 +107,7 @@ class _MonthDataState extends State<MonthData> {
               ),
               SizedBox(height: 10,),
               StreamBuilder(
-                stream: FirebaseFirestore.instance.collection("Accounts").doc(widget.month + " " + widget.Year).snapshots(),
+                stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(widget.month + " " + widget.Year).snapshots(),
                 builder: (context,snapshot){
                   if(snapshot.connectionState == ConnectionState.waiting)
                     {
@@ -112,6 +123,7 @@ class _MonthDataState extends State<MonthData> {
                       MaintenanceAmount = data.data()["Maintenance"];
                       RationAmount = data.data()["Ration"];
                       EmiAmount = data.data()["EMI"];
+                      MedicalExpenseAmount = data.data()['Medical Expense'];
                       return Container(
                         alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width,
@@ -150,7 +162,7 @@ class _MonthDataState extends State<MonthData> {
                                 Container(
                                   width: MediaQuery.of(context).size.width*0.5,
                                   child: AutoSizeText(
-                                    'Entertainment: ₹'+data.data()["Entertainment"].toString(),
+                                    'Medical: ₹'+data.data()["Medical Expense"].toString(),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
                                   ),
@@ -186,6 +198,14 @@ class _MonthDataState extends State<MonthData> {
                                 ),
                               ],
                             ),
+                            Container(
+                              width: MediaQuery.of(context).size.width*0.5,
+                              child: AutoSizeText(
+                                'Entertainment: ₹'+data.data()["Entertainment"].toString(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.red,fontSize: 16,fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -198,8 +218,9 @@ class _MonthDataState extends State<MonthData> {
               //add amount
               addAmountBox(),
               StreamBuilder(
-                stream: FirebaseFirestore.instance.collection("Accounts").
-                doc(widget.month+" "+widget.Year).collection("Transactions").orderBy('CreatedAt',descending: true).snapshots(),
+                stream: FirebaseFirestore.instance.collection("Users").doc(user.email).
+                collection("Accounts").doc(widget.month+" "+widget.Year).
+                collection("Transactions").orderBy('CreatedAt',descending: true).snapshots(),
                 builder: (context,snapshot){
                   if(snapshot.hasData)
                   {
@@ -233,7 +254,7 @@ class _MonthDataState extends State<MonthData> {
   }
 
   Widget addAmountBox(){
-    if(OngoingMonth == widget.month)
+    if((OngoingMonth == widget.month) && (OnGoingYear == widget.Year))
       {
         return Container(
           width: double.infinity,
@@ -402,11 +423,11 @@ class _MonthDataState extends State<MonthData> {
                         switch(CurrentExpense)
                         {
                           case 'Fees': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'Fees': FeesAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,
@@ -416,11 +437,11 @@ class _MonthDataState extends State<MonthData> {
                             break;
                           }
                           case 'EMI': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'EMI': EmiAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,
@@ -430,11 +451,11 @@ class _MonthDataState extends State<MonthData> {
                             break;
                           }
                           case 'Ration': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'Ration': RationAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,
@@ -444,11 +465,11 @@ class _MonthDataState extends State<MonthData> {
                             break;
                           }
                           case 'Entertainment': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'Entertainment': EntertainmentAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,
@@ -458,11 +479,11 @@ class _MonthDataState extends State<MonthData> {
                             break;
                           }
                           case 'Shopping': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'Shopping': ShoppingAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,
@@ -472,11 +493,25 @@ class _MonthDataState extends State<MonthData> {
                             break;
                           }
                           case 'Maintenance': {
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).update({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
                               'Maintenance': MaintenanceAmount + Amount,
                               'TotalExpense': totalExpense,
                             });
-                            FirebaseFirestore.instance.collection("Accounts").doc(docadd).collection("Transactions").add({
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
+                              "Expense Types": CurrentExpense,
+                              "Amount Spend": Amount,
+                              'Description': Description,
+                              'Date': Date,
+                              'CreatedAt': Timestamp.now().toString(),
+                            });
+                            break;
+                          }
+                          case 'Medical': {
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).update({
+                              'Medical Expense': MedicalExpenseAmount + Amount,
+                              'TotalExpense': totalExpense,
+                            });
+                            FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(docadd).collection("Transactions").add({
                               "Expense Types": CurrentExpense,
                               "Amount Spend": Amount,
                               'Description': Description,

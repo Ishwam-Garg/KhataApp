@@ -1,19 +1,27 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:khata_app/AddMonthData.dart';
+import 'package:khata_app/SignInScreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:khata_app/Services/Auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
+
+  User user = FirebaseAuth.instance.currentUser;
   String month,year;
   String monthName;
   Future<bool> IsDataExist() async{
-    DocumentSnapshot qn = await FirebaseFirestore.instance.collection("Accounts").doc(month + " "+year).get();
+    DocumentSnapshot qn = await FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(month + " "+year).get();
       return qn.exists;
   }
 
@@ -30,9 +38,10 @@ class _HomeState extends State<Home> {
       'EMI': 0,
       'Shopping': 0,
       'Entertainment': 0,
+      'Medical Expense': 0,
     };
 
-    FirebaseFirestore.instance.collection("Accounts").doc(month +" "+year).set(monthData);
+    FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").doc(month +" "+year).set(monthData);
   }
 
 
@@ -145,10 +154,50 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.deepPurple,
         title: Text('Khata App',style: TextStyle(color: Colors.white),),
         centerTitle: true,
+        actions: [
+          GestureDetector(
+            onTap: ()async{
+              //log out here
+
+              Fluttertoast.showToast(msg: 'Logging Out',textColor: Colors.black,toastLength: Toast.LENGTH_SHORT,backgroundColor: Colors.white,gravity: ToastGravity.BOTTOM);
+
+              final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+              try{
+                await googleSignIn.disconnect();
+              }
+              catch(e){
+                print("Google sign out error : $e");
+              }
+              try{
+                await _firebaseAuth.signOut();
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SignInScreen()), (Route<dynamic> route) => false);
+              }catch(e)
+              {
+                print("Firebase sign out error : $e");
+              }
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text('Log out',style: TextStyle(color: Colors.black,fontWeight: FontWeight.w600),),
+                  Icon(Icons.supervisor_account,color: Colors.purple,),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       backgroundColor: Colors.deepPurpleAccent.withOpacity(0.6),
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("Accounts").snapshots(),
+          stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").snapshots(),
           builder: (context,snapshot){
             if(snapshot.connectionState==ConnectionState.waiting)
               {
@@ -172,6 +221,7 @@ class _HomeState extends State<Home> {
                           data.data()["Maintenance"],
                           data.data()["Ration"],
                           data.data()["Shopping"],
+                          user,
                       );
                     });
               }
@@ -185,7 +235,7 @@ class _HomeState extends State<Home> {
   }
 
   MonthlyCard(BuildContext context,String month,String year,String expense,String monthnumber,
-      int emi,int entertainment,int fees,int maintenance,int ration,int shopping){
+      int emi,int entertainment,int fees,int maintenance,int ration,int shopping,User user){
     return GestureDetector(
       onTap: (){
         Navigator.push(context, MaterialPageRoute(builder: (context)=>
@@ -197,6 +247,7 @@ class _HomeState extends State<Home> {
               MaintenanceAmount: maintenance,
               RationAmount: ration,
               ShoppingAmount: shopping,
+              User: user,
             ),
         ),
         );
@@ -215,21 +266,11 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                        width: MediaQuery.of(context).size.width*0.4,
-                        child: AutoSizeText('$month'+',',textAlign: TextAlign.right,
-                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.orange),maxLines: 1,)),
-                    Container(
-                        width: MediaQuery.of(context).size.width*0.4,
-                        child: AutoSizeText('$year',textAlign: TextAlign.left,
-                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.deepOrange),maxLines: 1,)),
-                  ],
-                ),
-                SizedBox(height: 10,),
+                Container(
+                    width: MediaQuery.of(context).size.width*0.8,
+                    child: AutoSizeText('$month'+' '+'$year',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.orange),maxLines: 1,)),
                 Container(
                     width: MediaQuery.of(context).size.width*0.6,
                     child: Center(child: AutoSizeText('Total Expense',maxLines: 1,
