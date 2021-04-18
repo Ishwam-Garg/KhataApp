@@ -56,10 +56,6 @@ class _MonthDataState extends State<MonthData> {
     OngoingMonth = DateFormat('MM').format(now).toString();
     OnGoingYear = DateFormat('yyyy').format(now).toString();
     user = widget.User;
-    print(OngoingMonth);
-    print(OnGoingYear);
-    print(widget.Year);
-    print(widget.month);
 
     return WillPopScope(
       onWillPop: (){},
@@ -303,16 +299,12 @@ class _MonthDataState extends State<MonthData> {
                         autovalidate: false,
                         keyboardType: TextInputType.number,
                         onSaved: (value){
-                          setState(() {
-                            Amount = int.parse(value);
-                          });
+                          Amount = int.parse(value);
                         },
                         style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 18),
                         maxLines: 1,
                         onChanged: (value){
-                          setState(() {
-                            Amount = int.parse(value);
-                          });
+                          Amount = int.parse(value);
                         },
                         validator: (value) {
                           if (value.isEmpty)
@@ -355,16 +347,12 @@ class _MonthDataState extends State<MonthData> {
                         keyboardType: TextInputType.text,
                         maxLength: null,
                         onSaved: (value){
-                          setState(() {
-                            Description = value;
-                          });
+                          Description = value;
                         },
                         style: TextStyle(color: Colors.deepPurple,fontWeight: FontWeight.bold,fontSize: 18),
                         maxLines: 1,
                         onChanged: (value){
-                          setState(() {
-                            Description = value;
-                          });
+                          Description = value;
                         },
                         validator: (value) {
                           if (value.isEmpty)

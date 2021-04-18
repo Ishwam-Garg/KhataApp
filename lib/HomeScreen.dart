@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:khata_app/AddMonthData.dart';
 import 'package:khata_app/SignInScreen.dart';
@@ -16,7 +17,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
+  ScrollController _controller = ScrollController();
   User user = FirebaseAuth.instance.currentUser;
   String month,year;
   String monthName;
@@ -49,6 +50,11 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    if(_controller.hasClients)
+      {
+        _controller.animateTo(_controller.position.maxScrollExtent, duration: Duration(seconds: 1), curve: Curves.easeIn);
+      }
     var now = new DateTime.now();
     month = DateFormat('MM').format(now).toString();
     year = DateFormat('yyyy').format(now).toString();
@@ -144,93 +150,116 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: Container(
-        width: double.infinity,
-        color: Colors.deepPurpleAccent.withOpacity(0),
-        height: 60,
-      ),
-      appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
-        title: Text('Khata App',style: TextStyle(color: Colors.white),),
-        centerTitle: true,
-        actions: [
-          GestureDetector(
-            onTap: ()async{
-              //log out here
+    return WillPopScope(
+      onWillPop: () async{
+        SystemNavigator.pop();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: GestureDetector(
+            onTap: (){
 
-              Fluttertoast.showToast(msg: 'Logging Out',textColor: Colors.black,toastLength: Toast.LENGTH_SHORT,backgroundColor: Colors.white,gravity: ToastGravity.BOTTOM);
-
-              final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
-              try{
-                await googleSignIn.disconnect();
-              }
-              catch(e){
-                print("Google sign out error : $e");
-              }
-              try{
-                await _firebaseAuth.signOut();
-                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SignInScreen()), (Route<dynamic> route) => false);
-              }catch(e)
-              {
-                print("Firebase sign out error : $e");
-              }
             },
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10)
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text('Log out',style: TextStyle(color: Colors.black,fontWeight: FontWeight.w600),),
-                  Icon(Icons.supervisor_account,color: Colors.purple,),
-                ],
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(user.photoURL),
               ),
             ),
           ),
-        ],
+          backgroundColor: Colors.deepPurple,
+          title: Text('Khata App',style: TextStyle(color: Colors.white),),
+          centerTitle: false,
+          actions: [
+            GestureDetector(
+              onTap: ()async{
+                //log out here
+                Fluttertoast.showToast(msg: 'Logging Out',textColor: Colors.black,toastLength: Toast.LENGTH_SHORT,backgroundColor: Colors.white,gravity: ToastGravity.BOTTOM);
+                final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+                try{
+                  await googleSignIn.disconnect();
+                }
+                catch(e){
+                  print("Google sign out error : $e");
+                }
+                try{
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SignInScreen()), (Route<dynamic> route) => false);
+                  await _firebaseAuth.signOut();
+                }catch(e)
+                {
+                  print("Firebase sign out error : $e");
+                }
+              },
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text('Log out',style: TextStyle(color: Colors.black,fontWeight: FontWeight.w600),),
+                    Icon(Icons.supervisor_account,color: Colors.purple,),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.deepPurpleAccent.withOpacity(0.6),
+        body: StreamBuilder(
+            stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").snapshots(),
+            builder: (context,snapshot){
+              if(snapshot.connectionState==ConnectionState.waiting)
+                {
+                  return Center(
+                      child: Container(
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(
+                              backgroundColor: Colors.deepPurpleAccent.withOpacity(0.6),
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                            Text('We are creating this months record',overflow: TextOverflow.clip,
+                              style: TextStyle(color: Colors.white,fontSize: 16,fontWeight: FontWeight.bold),)
+                          ],
+                        ),
+                      ));
+                }
+              else if(snapshot.hasData)
+                {
+                  return ListView.builder(
+                      controller: _controller,
+                      itemCount: snapshot.data.docs.length,
+                      itemBuilder: (context,index){
+                        DocumentSnapshot data = snapshot.data.docs[index];
+                        return MonthlyCard(
+                            context,
+                            data.data()["monthName"],
+                            data.data()["year"],
+                            data.data()["TotalExpense"].toString(),
+                            data.data()["month"],
+                            data.data()["EMI"],
+                            data.data()["Entertainment"],
+                            data.data()["Fees"],
+                            data.data()["Maintenance"],
+                            data.data()["Ration"],
+                            data.data()["Shopping"],
+                            user,
+                        );
+                      });
+                }
+              else if(snapshot.hasError)
+                {
+                  print(snapshot.error);
+                }
+              return Container();
+            }),
       ),
-      backgroundColor: Colors.deepPurpleAccent.withOpacity(0.6),
-      body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").snapshots(),
-          builder: (context,snapshot){
-            if(snapshot.connectionState==ConnectionState.waiting)
-              {
-                return Container();
-              }
-            else if(snapshot.hasData)
-              {
-                return ListView.builder(
-                    itemCount: snapshot.data.docs.length,
-                    itemBuilder: (context,index){
-                      DocumentSnapshot data = snapshot.data.docs[index];
-                      return MonthlyCard(
-                          context,
-                          data.data()["monthName"],
-                          data.data()["year"],
-                          data.data()["TotalExpense"].toString(),
-                          data.data()["month"],
-                          data.data()["EMI"],
-                          data.data()["Entertainment"],
-                          data.data()["Fees"],
-                          data.data()["Maintenance"],
-                          data.data()["Ration"],
-                          data.data()["Shopping"],
-                          user,
-                      );
-                    });
-              }
-            else if(snapshot.hasError)
-              {
-                print(snapshot.error);
-              }
-            return Container();
-          }),
     );
   }
 

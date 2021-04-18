@@ -35,39 +35,94 @@ class _SignInScreenState extends State<SignInScreen> {
                 top: MediaQuery.of(context).size.height*0.05,
                 child: Container(
                     width: MediaQuery.of(context).size.width*0.9,
-                    child: AutoSizeText('Welcome',style: TextStyle(color: Colors.white,fontSize: 58,fontWeight: FontWeight.w600),maxFontSize: 58,minFontSize: 12,),
+                    child: AutoSizeText('Hi, There.\nWelcome',
+                      style: TextStyle(color: Colors.white.withOpacity(0.95),fontSize: 58,fontWeight: FontWeight.w600),maxFontSize: 58,minFontSize: 12,),
                 ),
             ),
             Positioned(
-              top: MediaQuery.of(context).size.height*0.2,
+              top: MediaQuery.of(context).size.height*0.3,
               left: MediaQuery.of(context).size.width*0.05,
               child: Container(
                 width: MediaQuery.of(context).size.width*0.8,
                 child: AutoSizeText(
-                  'Your monthly Records\nAwaits you to fill them!',
-                  style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 20),
+                  'Tired of keeping records in registers?\nYou are steps away from saving a ton of time and keeping yourself relaxed',
+                  style: TextStyle(color: Colors.white.withOpacity(0.95),fontWeight: FontWeight.bold,fontSize: 20),
                   overflow: TextOverflow.clip,),
               ),
             ),
+            /*
             Positioned(
-              top: MediaQuery.of(context).size.height*0.4,
+              top: MediaQuery.of(context).size.height*0.5,
               left: MediaQuery.of(context).size.width*0.1,
               right: MediaQuery.of(context).size.width*0.1,
               child: Container(width: MediaQuery.of(context).size.width*0.8,
               child: AutoSizeText('Sign In Using Google',textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white,fontSize: 24,fontWeight: FontWeight.w600),),),
             ),
+            */
             Positioned(
-              top: MediaQuery.of(context).size.height*0.5,
+              top: MediaQuery.of(context).size.height*0.6,
               left: MediaQuery.of(context).size.width*0.2,
               right: MediaQuery.of(context).size.width*0.2,
               child: GestureDetector(
                 onTap: (){
                   //signInMethod + CreateUserInFireStore
-                  google_sign_in().whenComplete((){
-                    Fluttertoast.showToast(msg: 'Logging In Please Wait',backgroundColor: Colors.white,textColor: Colors.black,gravity: ToastGravity.CENTER,toastLength: Toast.LENGTH_SHORT);
-                    CreateUserInFireStore();
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                  google_sign_in().then((user){
+                    if(user!=null)
+                      {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context){
+                          return WillPopScope(
+                            onWillPop: () async{
+                              await googleSignIn.disconnect();
+                              FirebaseAuth.instance.signOut();
+                              return true;
+                            },
+                            child: AlertDialog(
+                              title: Align(
+                                alignment: Alignment.center,
+                                child: Text('Press Back to exit or Continue'),
+                              ),
+                              content: Container(
+                                height: MediaQuery.of(context).size.height*0.2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: MediaQuery.of(context).size.width*0.1,
+                                      backgroundImage: NetworkImage(user.photoURL),
+                                    ),
+                                    Text(user.displayName,textAlign: TextAlign.center,),
+                                    Text(user.email,textAlign: TextAlign.center,),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                GestureDetector(
+                                  onTap: (){
+                                    Fluttertoast.showToast(msg: 'Logged In',backgroundColor: Colors.white,textColor: Colors.black,gravity: ToastGravity.CENTER,toastLength: Toast.LENGTH_SHORT);
+                                    CreateUserInFireStore();
+                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                                  },
+                                  child: Material(
+                                    elevation: 5,
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: Colors.deepPurpleAccent,
+                                    child: Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                        child: Text('Continue',style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      );
+
+                      //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                      }
                   });
                 },
                 child: Material(
@@ -102,6 +157,10 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
             ),
+            Positioned(
+                bottom: 0,
+                right: 0,
+                child: Image.asset('assets/images/House.gif',height: MediaQuery.of(context).size.width*0.5,width: MediaQuery.of(context).size.width*0.5,)),
           ],
         ),
       ),
