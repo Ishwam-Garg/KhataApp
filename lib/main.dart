@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:khata_app/Services/CheckRootUserLoggedIn.dart';
+import 'package:khata_app/SplashScreen.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: RootUserLoggedIn(),
+      //home: RootUserLoggedIn(),
+      home: SplashScreen(),
     );
   }
 }
