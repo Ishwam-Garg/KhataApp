@@ -76,12 +76,14 @@ class _MonthDataState extends State<MonthData> {
                 Navigator.pop(context);
               },
               child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-                child: Material(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.deepPurpleAccent,
-                  elevation: 10,
-                  child: Icon(Icons.arrow_back_ios,color: Colors.white,),
+                margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                child: Center(
+                  child: Material(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.deepPurpleAccent,
+                    elevation: 10,
+                    child: Center(child: Icon(Icons.arrow_back,color: Colors.white,)),
+                  ),
                 ),
               ),
           ),
@@ -213,6 +215,29 @@ class _MonthDataState extends State<MonthData> {
               ),
               //add amount
               addAmountBox(),
+              Container(
+                height: 50,
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.only(left: 20,right: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade400,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Transactions',style: TextStyle(fontSize: 16,color: Colors.grey.shade700),),
+                    GestureDetector(
+                        onTap: (){},
+                        child: Container(child: Text('See all',style: TextStyle(color: Colors.grey.shade100),))),
+                  ],
+                ),
+              ),
               StreamBuilder(
                 stream: FirebaseFirestore.instance.collection("Users").doc(user.email).
                 collection("Accounts").doc(widget.month+" "+widget.Year).
@@ -532,7 +557,7 @@ class _MonthDataState extends State<MonthData> {
                   else
                   {
                     Fluttertoast.showToast(
-                        msg: 'Please check details',
+                        msg: 'Missing details',
                         backgroundColor: Colors.deepPurple,
                         textColor: Colors.white,
                         toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
@@ -572,7 +597,7 @@ class _MonthDataState extends State<MonthData> {
               child: Text(
                 date,
                 textAlign: TextAlign.right,
-                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),)),
+                style: TextStyle(color: Colors.black.withOpacity(0.6),fontWeight: FontWeight.bold),)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -587,7 +612,7 @@ class _MonthDataState extends State<MonthData> {
                         description,
                         textAlign: TextAlign.left,
                         overflow: TextOverflow.clip,
-                        style: TextStyle(color: Colors.black,fontSize: 16,fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 16,fontWeight: FontWeight.bold),
                       ),
                   ),
                 ],

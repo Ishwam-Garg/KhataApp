@@ -138,11 +138,29 @@ class _HomeState extends State<Home> {
     IsDataExist().then((value){
       if(value)
       {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Loading',style: TextStyle(color: Colors.blue.shade600,fontWeight: FontWeight.bold,fontSize: 16),),
+                Text('We are loading your monthly records ...',style: TextStyle(color: Colors.white70),)
+              ]),
+          duration: Duration(seconds: 3),
+        ));
         print("DATA Exists");
       }
       else
       {
         CreateMonthData();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Creating',style: TextStyle(color: Colors.green.shade500,fontWeight: FontWeight.bold,fontSize: 16),),
+                Text('We are creating your monthly records ...',style: TextStyle(color: Colors.white70),)
+              ]),
+          duration: Duration(seconds: 3),
+        ));
         print("Creating");
       }
     });
@@ -211,7 +229,7 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-        backgroundColor: Colors.deepPurpleAccent.withOpacity(0.6),
+        backgroundColor: Colors.deepPurple.shade300,
         body: StreamBuilder(
             stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").orderBy('timestamp',descending: true).snapshots(),
             builder: (context,snapshot){
