@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:khata_app/Screens/Views/BottomNavBarScreen.dart';
 import 'package:khata_app/Services/Auth.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:khata_app/HomeScreen.dart';
+import 'package:khata_app/FinanceScreen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -120,7 +121,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                       onTap: (){
                                         Fluttertoast.showToast(msg: 'Logged In',backgroundColor: Colors.white,textColor: Colors.black,gravity: ToastGravity.CENTER,toastLength: Toast.LENGTH_SHORT);
                                         CreateUserInFireStore();
-                                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                                        //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Home()));
+                                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>BottomNavScreen(user)));
                                       },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),

@@ -11,14 +11,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khata_app/Services/Auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-class Home extends StatefulWidget {
+class FinanceScreen extends StatefulWidget {
+  final User user;
+  FinanceScreen(this.user);
   @override
-  _HomeState createState() => _HomeState();
+  _FinanceScreenState createState() => _FinanceScreenState();
 }
 
-class _HomeState extends State<Home> {
+class _FinanceScreenState extends State<FinanceScreen> {
   ScrollController _controller = ScrollController();
-  User user = FirebaseAuth.instance.currentUser;
+  User user;
   String month,year;
   String monthName;
   Future<bool> IsDataExist() async{
@@ -169,66 +171,13 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    user = widget.user;
     return WillPopScope(
       onWillPop: () async{
         SystemNavigator.pop();
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: GestureDetector(
-            onTap: (){
-
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(user.photoURL),
-              ),
-            ),
-          ),
-          backgroundColor: Colors.deepPurple,
-          title: Text('Khata App',style: TextStyle(color: Colors.white),),
-          centerTitle: false,
-          actions: [
-            GestureDetector(
-              onTap: ()async{
-                //log out here
-                Fluttertoast.showToast(msg: 'Logging Out',textColor: Colors.black,toastLength: Toast.LENGTH_SHORT,backgroundColor: Colors.white,gravity: ToastGravity.BOTTOM);
-                final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
-                try{
-                  await googleSignIn.disconnect();
-                }
-                catch(e){
-                  print("Google sign out error : $e");
-                }
-                try{
-                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SignInScreen()), (Route<dynamic> route) => false);
-                  await _firebaseAuth.signOut();
-                }catch(e)
-                {
-                  print("Firebase sign out error : $e");
-                }
-              },
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text('Log out',style: TextStyle(color: Colors.black,fontWeight: FontWeight.w600),),
-                    Icon(Icons.supervisor_account,color: Colors.purple,),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
         backgroundColor: Colors.deepPurple.shade300,
         body: StreamBuilder(
             stream: FirebaseFirestore.instance.collection("Users").doc(user.email).collection("Accounts").orderBy('timestamp',descending: true).snapshots(),
