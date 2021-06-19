@@ -4,8 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class CreateTodoPost extends StatefulWidget {
+  final String timestamp;
+  final String title,content;
+  final bool isEditing;
   final User user;
-  CreateTodoPost(this.user);
+  CreateTodoPost(this.user,this.title,this.content,this.isEditing,this.timestamp);
 
   @override
   _CreateTodoPostState createState() => _CreateTodoPostState();
@@ -18,9 +21,31 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
 
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController _titlecontroller = TextEditingController(text: '');
-  TextEditingController _contentcontroller = TextEditingController(text: '');
+  /*
+  TextEditingController _titlecontroller = TextEditingController();
+  TextEditingController _contentcontroller = TextEditingController()
+   */
 
+
+  UpdateTodoPost(User user,String title,String des,String time,String date,String timestamp) async {
+
+    Map<String,String> Data = {
+      'Title' : title,
+      'description': des,
+      'date': date,
+      'time': time,
+      'timestamp': Timestamp.now().toString(),
+    };
+
+    QuerySnapshot snap = await FirebaseFirestore.instance.collection("Users").doc(user.email).collection('Todo').where('timestamp',isEqualTo: timestamp).get();
+
+    DocumentSnapshot ds = snap.docs[0];
+
+    String docId = await ds.reference.id;
+
+    FirebaseFirestore.instance.collection("Users").doc(user.email).collection('Todo').doc(docId).update(Data);
+
+  }
 
   AddTodoPost(User user,String title,String description,String time,String date) async{
 
@@ -41,15 +66,11 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
     DateTime now = DateTime.now();
     String time = DateFormat('kk:mm').format(now);
     String date = DateFormat('d EEE, MMM').format(now);
-    print(time);
-    print(date);
     return WillPopScope(
       onWillPop: () async{
-
-        _contentcontroller.clear();
-        _titlecontroller.clear();
+        //_contentcontroller.clear();
+        //_titlecontroller.clear();
         Navigator.pop(context);
-
         return true;
       },
       child: Scaffold(
@@ -60,12 +81,12 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
           centerTitle: true,
         ),
         floatingActionButton: FloatingActionButton.extended(
-            onPressed: (){
+            onPressed: !widget.isEditing ? (){
               if(_formKey.currentState.validate()) {
-                if (content.isNotEmpty) {
+                if (content.length > 0) {
                   AddTodoPost(widget.user, title, content, time, date);
-                  _titlecontroller.clear();
-                  _contentcontroller.clear();
+                  //_titlecontroller.clear();
+                  //_contentcontroller.clear();
                   Navigator.pop(context);
                 }
                 else {
@@ -80,7 +101,26 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
                   content: Text('Error fill details properly'),
                 ));
               }
-
+            } : (){
+              if(_formKey.currentState.validate()) {
+                if (content.isNotEmpty) {
+                  UpdateTodoPost(widget.user, title, content, time, date, widget.timestamp);
+                  //_titlecontroller.clear();
+                  //_contentcontroller.clear();
+                  Navigator.pop(context);
+                }
+                else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Content cannot be empty'),
+                  ));
+                }
+              }
+              else
+              {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Error fill details properly'),
+                ));
+              }
             },
             backgroundColor: Colors.deepPurple.shade400,
             label: Text('Save',style: TextStyle(color: Colors.white),),
@@ -104,12 +144,16 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: TextFormField(
-                      controller: _titlecontroller,
+                      //controller: _titlecontroller,
+                      initialValue: widget.title,
                       onSaved: (value){
+                        //_formKey.currentState.save();
                         title = value;
+                        //_titlecontroller.text = value;
                       },
                       onChanged: (value){
                         title = value;
+                        //_titlecontroller.text = value;
                       },
                       cursorColor: Colors.white60,
                       keyboardType: TextInputType.text,
@@ -147,12 +191,15 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: TextFormField(
-                        controller: _contentcontroller,
+                        //controller: _contentcontroller,
+                        initialValue: widget.content,
                         onSaved: (value){
                           content = value;
+                          print(content);
                         },
                         onChanged: (value){
                           content = value;
+                          print(content);
                         },
                         autofocus: true,
                         cursorColor: Colors.white60,
