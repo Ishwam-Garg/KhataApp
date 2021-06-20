@@ -62,6 +62,14 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    content = widget.content;
+    title = widget.title;
+  }
+
+  @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
     String time = DateFormat('kk:mm').format(now);
@@ -193,6 +201,7 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
                       child: TextFormField(
                         //controller: _contentcontroller,
                         initialValue: widget.content,
+                        maxLines: null,
                         onSaved: (value){
                           content = value;
                           print(content);
@@ -203,7 +212,7 @@ class _CreateTodoPostState extends State<CreateTodoPost> {
                         },
                         autofocus: true,
                         cursorColor: Colors.white60,
-                        keyboardType: TextInputType.text,
+                        keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
                           alignLabelWithHint: true,
                           enabled: true,
